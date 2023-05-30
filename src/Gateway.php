@@ -148,13 +148,14 @@ class Gateway extends Service
                     switch ($res['event']) {
                         case 'Connect':
                             list($event) = $res['args'];
+                            $session = ['remote_ip'=>$event['remote_ip'], 'remote_port'=>$event['remote_port'], 'server_port'=>$event['server_port']];
                             $this->fd_list[$event['fd']] = [
                                 'uid' => '',
-                                'session' => [],
+                                'session' => $session,
                                 'group_list' => [],
                                 'ws' => 0,
                             ];
-                            $session_string = '';
+                            $session_string = serialize($session);
                             $load = pack('CNN', Protocol::EVENT_CONNECT, $event['fd'], strlen($session_string)) . $session_string;
                             $this->sendToWorker(Protocol::EVENT_CONNECT, $event['fd'], $load);
                             break;
@@ -344,3 +345,5 @@ class Gateway extends Service
         $client->start();
     }
 }
+
+

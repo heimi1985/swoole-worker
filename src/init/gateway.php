@@ -16,6 +16,12 @@ foreach (['Connect', 'Open', 'Receive', 'Message'] as $event) {
             $info = $server->getClientInfo($args[0]->fd, $args[0]->reactor_id, true);
             if (is_array($info) && isset($info['remote_ip'])) {
                 $ip = $info['remote_ip'];
+                if('Connect' == $event){
+                    $args[0]->server_port = $info['server_port'];
+                    $args[0]->remote_ip = $info['remote_ip'];
+                    $args[0]->remote_port = $info['remote_port'];
+                }
+                
                 if (!isset($this->throttle_list[$ip])) {
                     $this->throttle_list[$ip] = [
                         'timer' => Timer::tick(Config::get('throttle_interval', 10000), function () use ($ip) {
