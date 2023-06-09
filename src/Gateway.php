@@ -241,6 +241,12 @@ class Gateway extends Service
 
     protected function sendToProcess($data)
     {
+	
+	foreach($data['args'] as $i=>$d){
+	    if($d['data']){
+            	$data['args'][$i]['data'] = base64_encode($d['data']);
+	    }
+        }
         $this->process->exportSocket()->send(serialize($data));
     }
 

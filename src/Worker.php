@@ -199,11 +199,12 @@ class Worker extends Service
                 });
             };
             $client->onMessage = function (string $buffer) use ($address) {
+		$header = unpack("Nlen/Ncrc/Ccmd/Nfd", $buffer);
                 $this->getServer()->sendMessage(serialize([
                     'event' => 'gateway_event',
                     'buffer' => $buffer,
                     'address' => $address,
-                ]), $address['lan_port'] % $this->getServer()->setting['worker_num']);
+                ]), $header['fd'] % $this->getServer()->setting['worker_num']);
             };
             $client->onClose = function () use ($client, $address) {
                 if (isset($client->timer_id)) {
@@ -245,7 +246,7 @@ class Worker extends Service
                 break;
 
             case Protocol::EVENT_RECEIVE:
-                $this->dispatch('onReceive', $client, $session, $extra);
+                $this->dispatch('onReceive', $client, $session, base64_decode($extra));
                 break;
 
             case Protocol::EVENT_CLOSE:

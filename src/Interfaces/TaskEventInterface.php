@@ -14,7 +14,7 @@ interface TaskEventInterface
      *
      * @return void
      */
-    public function onWorkerStart();
+    public function onWorkerStart($workerid);
 
     /**
      * worker stop

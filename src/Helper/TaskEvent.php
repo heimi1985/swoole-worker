@@ -18,7 +18,7 @@ class TaskEvent implements TaskEventInterface
         $this->worker = $worker;
     }
 
-    public function onWorkerStart()
+    public function onWorkerStart($workerid)
     {
     }
 
