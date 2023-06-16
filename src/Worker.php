@@ -26,14 +26,16 @@ class Worker extends Service
 
     protected $gateway_address_list = [];
     protected $gateway_conn_list = [];
+    protected $user_processes = [];
 
-    public function __construct()
+    public function __construct($user_processes)
     {
         parent::__construct();
 
         $this->set([
             'task_worker_num' => swoole_cpu_num()
         ]);
+        $this->user_processes = $user_processes;
 
         Config::set('init_file', __DIR__ . '/init/worker.php');
 
@@ -118,6 +120,9 @@ class Worker extends Service
             }
         }, false, 2, true);
         $server->addProcess($this->process);
+        foreach($this->user_processes as $user_process){
+            $server->addProcess($user_process);
+        }
         $this->set([
             'task_enable_coroutine' => true,
         ]);
@@ -240,7 +245,6 @@ class Worker extends Service
         $extra = substr($data['data'], $data['session_len']);
         $client = bin2hex(pack('NnN', ip2long($address['lan_host']), $address['lan_port'], $data['fd']));
         switch ($data['cmd']) {
-
             case Protocol::EVENT_CONNECT:
                 $this->dispatch('onConnect', $client, $session);
                 break;
@@ -267,5 +271,23 @@ class Worker extends Service
                 Service::debug("undefined cmd from gateway! cmdcode:{$data['cmd']}");
                 break;
         }
+    }
+
+    public function setTaskWorkerNum($num, $worker_times)
+    {
+        $res = true;
+        if(intval($num)>0){
+            $this->set([
+                'task_worker_num' => $num
+            ]);
+        }else if(intval($worker_times)){
+            $this->set([
+                'task_worker_num' => $this->getServer()->setting['worker_num']*intval($worker_times);
+            ]);
+        }else{
+            $res = false;
+        }
+
+        return $res;
     }
 }
